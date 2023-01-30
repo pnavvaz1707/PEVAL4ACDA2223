@@ -12,14 +12,15 @@ public class Utilidades {
         Colores.imprimirAzul("0. " + MENU_OPCIONES[MENU_OPCIONES.length - 1]);
     }
 
-    public static void crearMenu(String[] MENU_OPCIONES) {
+    public static int mostrarMenu(String[] MENU_OPCIONES) {
         for (int i = 0; i < MENU_OPCIONES.length; i++) {
             Colores.imprimirAzul((i + 1) + ". " + MENU_OPCIONES[i]);
         }
-    }
 
-    public static void imprimirOpcion(String opcion) {
-        Colores.imprimirAzul("Has seleccionado " + opcion);
+        int opcionSel = solicitarEnteroEnUnRango(1, MENU_OPCIONES.length, "Seleccione una opción");
+        System.out.println("Has seleccionado --> " + MENU_OPCIONES[opcionSel - 1]);
+
+        return opcionSel;
     }
 
     public static int solicitarEnteroEnUnRango(int limiteInferior, int limiteSuperior, String msg) {

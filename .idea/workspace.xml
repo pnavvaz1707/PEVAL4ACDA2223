@@ -4,17 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d42a1cef-beb4-4025-b864-694ea712dfe0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Colores.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Utilidades.java" afterDir="false" />
+    <list default="true" id="d42a1cef-beb4-4025-b864-694ea712dfe0" name="Changes" comment="Falta 6 7 8">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Utilidades.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/net/codejava/mongodb/Utilidades.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +75,21 @@
       <updated>1674634234572</updated>
       <workItem from="1674634236396" duration="6180000" />
       <workItem from="1674642368486" duration="3732000" />
+      <workItem from="1674646575562" duration="204000" />
+      <workItem from="1674716814482" duration="24000" />
+      <workItem from="1674724009137" duration="622000" />
+      <workItem from="1674728838327" duration="85000" />
+      <workItem from="1675063780948" duration="965000" />
+      <workItem from="1675065123156" duration="7651000" />
     </task>
+    <task id="LOCAL-00001" summary="Falta 6 7 8">
+      <created>1674646745240</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1674646745240</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -98,5 +105,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Falta 6 7 8" />
+    <option name="LAST_COMMIT_MESSAGE" value="Falta 6 7 8" />
   </component>
 </project>

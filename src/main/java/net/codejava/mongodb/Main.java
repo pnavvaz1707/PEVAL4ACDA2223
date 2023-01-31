@@ -1,19 +1,36 @@
 package net.codejava.mongodb;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.*;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
-import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * PEVAL 4 DE ACDA
+ *
+ * @author Pablo Navarro Vázquez
+ */
 public class Main {
 
-    private static MongoCollection<Document> col;
+    /**
+     * Objeto de la clase CRUD que usaremos para realizar las consultas, inserciones, borrados y modificaciones
+     */
+    private static CRUD CRUD;
 
+    /**
+     * Objeto tipo BasicBDObject que nos permitirá almacenar la instrucción de las consultas
+     */
+    private static BasicDBObject consulta;
+
+    /**
+     * Lista de objetos tipo BasicBDObject que nos permitirá varias consultas para luego unirlas todas en una más compleja
+     */
+    private static List<BasicDBObject> dbObjects;
+
+    /**
+     * Array que contiene las opciones del menú
+     */
     private static final String[] MENU_OPCIONES = {
             "Insertar una receta nueva",
             "Eliminar una receta introduciendo su nombre por teclado.",
@@ -28,278 +45,135 @@ public class Main {
 
     public static void main(String[] args) {
         // Conexión en mongodb Compass --> mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/test
-        MongoClient client = MongoClients.create("mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/?retryWrites=true&w=majority");
-        MongoDatabase db = client.getDatabase("practica04");
-        col = db.getCollection("recetas");
+        CRUD =new CRUD("mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/?retryWrites=true&w=majority","practica04" , "recetas");
 
         Colores.imprimirVerde("Conectado a la base de datos");
-
         int respuesta;
-        BasicDBObject consulta;
-        List<BasicDBObject> dbObjects;
-
         do {
             respuesta = Utilidades.mostrarMenu(MENU_OPCIONES);
 
             switch (respuesta) {
                 case 1:
-                    if (insertarReceta()) {
+                    if (CRUD.insertarReceta()) {
                         Colores.imprimirVerde("La receta se ha insertado con éxito");
                     } else {
                         Colores.imprimirRojo("La receta no se ha insertado");
                     }
                     break;
                 case 2:
-                    System.out.println("Estas son las recetas que existen");
-                    mostrarSoloNombre(col.find());
-                    System.out.println("////////////////////////////////////////////////////");
-                    borrarReceta();
+                    mostrarRecetas();
+                    CRUD.borrarReceta();
                     break;
                 case 3:
-                    System.out.println("Estas son las recetas que existen");
-                    mostrarSoloNombreYTiempo(col.find());
-                    System.out.println("////////////////////////////////////////////////////");
-                    actualizarElaboracion();
+                    mostrarRecetas();
+                    CRUD.actualizarElaboracion();
                     break;
                 case 4:
-                    consulta = new BasicDBObject();
-
-                    consulta.put("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que desea consultar"));
-
-                    mostrarSoloIngredientes(col.find(consulta));
+                    CRUD.mostrarSoloIngredientes(new BasicDBObject("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que desea consultar")));
                     break;
                 case 5:
-                    consulta = new BasicDBObject();
 
-                    dbObjects = new ArrayList<>();
-
-                    dbObjects.add(new BasicDBObject("ingredientes", new BasicDBObject("$elemMatch", new BasicDBObject("nombre", new BasicDBObject("$regex", "huevo")))));
-                    dbObjects.add(new BasicDBObject("calorias", new BasicDBObject("$gt", 500)));
-
-                    consulta.put("$and", dbObjects);
-
-                    mostrarSoloNombre(col.find(consulta));
+                    CRUD.mostrarSoloNombre(consultaPorIngredienteYCalorias());
                     break;
                 case 6:
-                    consulta = new BasicDBObject();
 
-                    dbObjects = new ArrayList<>();
-
-                    dbObjects.add(new BasicDBObject("tiempo.unidad", "minutos"));
-                    dbObjects.add(new BasicDBObject("tiempo.valor", new BasicDBObject("$lt", 60)));
-
-                    List<String> tiposPlato = new ArrayList<>();
-                    tiposPlato.add("primer plato");
-                    tiposPlato.add("segundo plato");
-
-                    dbObjects.add(new BasicDBObject("tipo", new BasicDBObject("$in", tiposPlato)));
-
-                    consulta.put("$and", dbObjects);
-
-                    mostrarSoloNombreYTiempo(col.find(consulta));
+                    CRUD.mostrarSoloNombreYTiempo(consultarPorTiempoYTipoDePlato());
                     break;
                 case 7:
-                    consulta = new BasicDBObject();
-
-                    dbObjects = new ArrayList<>();
-
-                    dbObjects.add(new BasicDBObject("pasos", new BasicDBObject("$elemMatch", new BasicDBObject("elaboracion",new BasicDBObject("$regex", "reposa")))));
-
-                    tiposPlato = new ArrayList<>();
-                    tiposPlato.add("primer plato");
-                    tiposPlato.add("plato único");
-                    dbObjects.add(new BasicDBObject("tipo", new BasicDBObject("$in", tiposPlato)));
-
-                    consulta.put("$and", dbObjects);
-                    mostrarSoloNombreYPasos(col.find(consulta));
+                    CRUD.mostrarSoloNombreYPasos(consultarPorElaboracionYTipoDePlato());
                     break;
                 case 8:
-                    consulta = new BasicDBObject();
+                    consulta = consultarPorDificultadYNumPasos();
 
-                    dbObjects = new ArrayList<>();
-
-                    dbObjects.add(new BasicDBObject("dificultad", "Difícil"));
-                    dbObjects.add(new BasicDBObject("$expr", new BasicDBObject("$lte", Arrays.asList(new BasicDBObject("$size", "$pasos"), 5))));
-
-                    consulta.put("$and", dbObjects);
-
-                    mostrarDatos(col.find(consulta));
+                    CRUD.mostrarDatos(consulta);
                     break;
             }
         } while (respuesta != MENU_OPCIONES.length);
-        client.close();
+    }
+
+    /**
+     * Método para consultar por ingredientes y calorías
+     * @return (Devuelve el objeto tipo BasicBDObject que nos permitirá filtrar en la colección)
+     */
+    private static BasicDBObject consultaPorIngredienteYCalorias() {
+        consulta = new BasicDBObject();
+
+        dbObjects = new ArrayList<>();
+
+        dbObjects.add(new BasicDBObject("ingredientes", new BasicDBObject("$elemMatch", new BasicDBObject("nombre", new BasicDBObject("$regex", "huevo")))));
+        dbObjects.add(new BasicDBObject("calorias", new BasicDBObject("$gt", 500)));
+
+        consulta.put("$and", dbObjects);
+        return consulta;
+    }
+
+    /**
+     * Método para consultar por tiempo y tipo de plato las recetas
+     * @return (Devuelve el objeto tipo BasicBDObject que nos permitirá filtrar en la colección)
+     */
+    private static BasicDBObject consultarPorTiempoYTipoDePlato() {
+        consulta = new BasicDBObject();
+
+        dbObjects = new ArrayList<>();
+
+        dbObjects.add(new BasicDBObject("tiempo.unidad", "minutos"));
+        dbObjects.add(new BasicDBObject("tiempo.valor", new BasicDBObject("$lt", 60)));
+
+        List<String> tiposPlato = new ArrayList<>();
+        tiposPlato.add("primer plato");
+        tiposPlato.add("segundo plato");
+
+        dbObjects.add(new BasicDBObject("tipo", new BasicDBObject("$in", tiposPlato)));
+
+        consulta.put("$and", dbObjects);
+        return consulta;
+    }
+
+    /**
+     * Método para consultar por dificultad y número de pasos las recetas
+     * @return (Devuelve el objeto tipo BasicBDObject que nos permitirá filtrar en la colección)
+     */
+    private static BasicDBObject consultarPorDificultadYNumPasos() {
+        consulta = new BasicDBObject();
+
+        dbObjects = new ArrayList<>();
+
+        dbObjects.add(new BasicDBObject("dificultad", "Difícil"));
+        dbObjects.add(new BasicDBObject("$expr", new BasicDBObject("$lte", Arrays.asList(new BasicDBObject("$size", "$pasos"), 5))));
+
+        consulta.put("$and", dbObjects);
+        return consulta;
+    }
+
+    /**
+     * Método para consultar por elaboración y tipo de plato de las recetas
+     * @return (Devuelve el objeto tipo BasicBDObject que nos permitirá filtrar en la colección)
+     */
+    private static BasicDBObject consultarPorElaboracionYTipoDePlato() {
+        List<String> tiposPlato;
+
+        consulta = new BasicDBObject();
+        dbObjects = new ArrayList<>();
+
+        dbObjects.add(new BasicDBObject("pasos", new BasicDBObject("$elemMatch", new BasicDBObject("elaboracion", new BasicDBObject("$regex", "reposa")))));
+
+        tiposPlato = new ArrayList<>();
+        tiposPlato.add("primer plato");
+        tiposPlato.add("plato único");
+        dbObjects.add(new BasicDBObject("tipo", new BasicDBObject("$in", tiposPlato)));
+
+        consulta.put("$and", dbObjects);
+        return consulta;
+    }
+
+    /**
+     * Método para mostrar todos los nombres de las recetas de la colección
+     */
+    private static void mostrarRecetas() {
+        System.out.println("Estas son las recetas que existen");
+        CRUD.mostrarSoloNombre(new BasicDBObject());
+        System.out.println("////////////////////////////////////////////////////");
     }
 
 
-    public static boolean insertarReceta() {
-        Document docReceta = new Document();
-
-        docReceta.append("tipo", insertarTipos());
-        docReceta.append("dificultad", Utilidades.solicitarCadenaNoVacia("Introduce la facilidad de la receta"));
-        docReceta.append("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta"));
-        docReceta.append("ingredientes", insertarIngredientes());
-        docReceta.append("calorias", Utilidades.solicitarEnteroEnUnRango(1, 1500, "Introduce las calorías"));
-        docReceta.append("pasos", insertarPasos());
-
-        Document docTiempo = new Document();
-        docTiempo.append("valor", Utilidades.solicitarEnteroEnUnRango(5, 59, "Introduce el tiempo que se tarda en realizar la receta"));
-        docTiempo.append("unidad", Utilidades.solicitarCadenaNoVacia("Introduce la unidad en la que se va a medir el tiempo"));
-
-        docReceta.append("tiempo", docTiempo);
-        docReceta.append("electrodomestico", Utilidades.solicitarCadenaNoVacia("Introduce el electrodoméstico usado"));
-
-        return col.insertOne(docReceta).wasAcknowledged();
-    }
-
-    public static void borrarReceta() {
-        int numRegistrosBorrados = (int) col.deleteOne(Filters.eq("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que deseas borrar"))).getDeletedCount();
-        System.out.println("Se han borrado " + numRegistrosBorrados);
-    }
-
-    public static void actualizarElaboracion() {
-        String nombreRecetaSel = Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que desea modificar");
-        col.updateOne(Filters.eq("nombre", nombreRecetaSel), Updates.set("tiempo.valor", Utilidades.solicitarEnteroEnUnRango(1, 60, "Introduce el nuevo tiempo de elaboración de la receta")));
-        col.updateOne(Filters.eq("nombre", nombreRecetaSel), Updates.set("tiempo.valor", Utilidades.solicitarCadenaNoVacia("Introduce la nueva medida de tiempo de la receta")));
-    }
-
-    private static List<String> insertarTipos() {
-        List<String> tipos = new ArrayList<>();
-
-        String respuestaBucle = "";
-
-        while (!respuestaBucle.trim().equals("*")) {
-            tipos.add(Utilidades.solicitarCadenaNoVacia("Indica el tipo de plato que es la receta (primer plato, plato único, etc.)"));
-            respuestaBucle = Utilidades.solicitarCadena("Introduce un asterisco si desea parar de agregar tipos de plato");
-        }
-        return tipos;
-    }
-
-    private static List<Document> insertarPasos() {
-        List<Document> pasos = new ArrayList<>();
-
-        String respuestaBucle = "";
-
-        int orden = 0;
-
-        while (!respuestaBucle.trim().equals("*")) {
-            orden++;
-            pasos.add(insertarPaso(orden));
-            respuestaBucle = Utilidades.solicitarCadena("Introduce un asterisco si desea parar de agregar pasos");
-        }
-        return pasos;
-    }
-
-    private static Document insertarPaso(int i) {
-        Document paso = new Document();
-
-        paso.append("orden", String.valueOf(i));
-        paso.append("elaboracion", Utilidades.solicitarCadenaNoVacia("Introduce la elaboración del paso"));
-
-        return paso;
-    }
-
-    private static List<Document> insertarIngredientes() {
-        List<Document> ingredientes = new ArrayList<>();
-
-        String respuestaBucle = "";
-
-        while (!respuestaBucle.trim().equals("*")) {
-            ingredientes.add(insertarIngrediente());
-            respuestaBucle = Utilidades.solicitarCadena("Introduce un asterisco si desea parar de agregar ingredientes");
-        }
-        return ingredientes;
-    }
-
-    private static Document insertarIngrediente() {
-        Document ingrediente = new Document();
-
-        ingrediente.append("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre del ingrediente"));
-        ingrediente.append("cantidad", Utilidades.solicitarFloatEnUnRango(0, 5000, "Introduce la cantidad del ingrediente"));
-        ingrediente.append("unidades", Utilidades.solicitarCadena("Introduce el tipo de unidad (gramos, cucharadita, etc.)"));
-
-        return ingrediente;
-    }
-
-    private static void mostrarSoloIngredientes(FindIterable<Document> datos) {
-        MongoCursor<Document> cursor = datos.cursor();
-        while (cursor.hasNext()) {
-            Document receta = cursor.next();
-            System.out.println("Nombre: " + receta.get("nombre"));
-            mostrarIngredientes(receta);
-        }
-        cursor.close();
-    }
-
-    private static void mostrarSoloNombre(FindIterable<Document> datos) {
-        MongoCursor<Document> cursor = datos.cursor();
-        while (cursor.hasNext()) {
-            Document receta = cursor.next();
-            System.out.println("Nombre: " + receta.get("nombre"));
-        }
-        cursor.close();
-    }
-
-    private static void mostrarSoloNombreYTiempo(FindIterable<Document> datos) {
-        MongoCursor<Document> cursor = datos.cursor();
-        while (cursor.hasNext()) {
-            Document receta = cursor.next();
-            System.out.println("Nombre: " + receta.get("nombre"));
-            Document tiempo = (Document) receta.get("tiempo");
-            System.out.println(tiempo.get("valor") + " " + tiempo.get("unidad"));
-        }
-        cursor.close();
-    }
-
-    private static void mostrarSoloNombreYPasos(FindIterable<Document> datos) {
-        MongoCursor<Document> cursor = datos.cursor();
-        while (cursor.hasNext()) {
-            Document receta = cursor.next();
-            System.out.println("Nombre: " + receta.get("nombre"));
-
-            mostrarPasos(receta);
-        }
-        cursor.close();
-    }
-
-    private static void mostrarDatos(FindIterable<Document> datos) {
-        MongoCursor<Document> cursor = datos.cursor();
-        while (cursor.hasNext()) {
-            Document receta = cursor.next();
-            System.out.println("Tipo: " + receta.getList("tipo", String.class));
-            System.out.println("Nombre: " + receta.get("nombre") + "\tDificultad: " + receta.get("dificultad"));
-
-            mostrarIngredientes(receta);
-
-            System.out.println("Calorias: " + receta.get("calorias"));
-
-            mostrarPasos(receta);
-
-            System.out.println("Tiempo");
-            Document tiempo = (Document) receta.get("tiempo");
-            System.out.println("\tValor: " + tiempo.get("valor") + "\tUnidad: " + tiempo.get("unidad"));
-
-            System.out.println("Electrodoméstico: " + receta.get("electrodomestico"));
-            System.out.println("//////////////////////////////////////////////////////////////////");
-        }
-        cursor.close();
-    }
-
-    private static void mostrarIngredientes(Document receta) {
-        System.out.println("Ingredientes");
-        List<Document> ingredientes = receta.getList("ingredientes", Document.class);
-
-        for (Document ingrediente : ingredientes) {
-            System.out.println("\tNombre: " + ingrediente.get("nombre"));
-            System.out.println("\tCantidad: " + ingrediente.get("cantidad") + "\tUnidad: " + ingrediente.get("unidades"));
-        }
-    }
-
-    private static void mostrarPasos(Document receta) {
-        System.out.println("Pasos");
-        List<Document> pasos = receta.getList("pasos", Document.class);
-
-        for (Document paso : pasos) {
-            System.out.println("\t" + paso.get("orden") + ". " + paso.get("elaboracion"));
-        }
-    }
 }

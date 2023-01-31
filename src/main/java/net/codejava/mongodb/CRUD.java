@@ -47,8 +47,21 @@ public class CRUD {
         docReceta.append("pasos", insertarPasos());
 
         Document docTiempo = new Document();
-        docTiempo.append("valor", Utilidades.solicitarEnteroEnUnRango(5, 59, "Introduce el tiempo que se tarda en realizar la receta"));
-        docTiempo.append("unidad", Utilidades.solicitarCadenaNoVacia("Introduce la unidad en la que se va a medir el tiempo"));
+        int valor = 0;
+
+        String unidad = Utilidades.solicitarCadenaNoVacia("Introduce la unidad en la que se va a medir el tiempo");
+        switch (unidad) {
+            case "minutos":
+                valor = Utilidades.solicitarEnteroEnUnRango(1, 60, "Introduce el nuevo tiempo de elaboración de la receta (minutos)");
+                break;
+            case "horas":
+                valor = Utilidades.solicitarEnteroEnUnRango(1, 20, "Introduce el nuevo tiempo de elaboración de la receta (horas)");
+                break;
+            default:
+                Colores.imprimirRojo("Debes introducir una de las unidades de tiempo 'minutos' u 'horas'");
+        }
+        docTiempo.append("unidad", unidad);
+        docTiempo.append("valor", valor);
 
         docReceta.append("tiempo", docTiempo);
         docReceta.append("electrodomestico", Utilidades.solicitarCadenaNoVacia("Introduce el electrodoméstico usado"));

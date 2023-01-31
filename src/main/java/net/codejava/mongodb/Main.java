@@ -14,11 +14,6 @@ import java.util.List;
 public class Main {
 
     /**
-     * Objeto de la clase CRUD que usaremos para realizar las consultas, inserciones, borrados y modificaciones
-     */
-    private static CRUD CRUD;
-
-    /**
      * Objeto tipo BasicBDObject que nos permitirá almacenar la instrucción de las consultas
      */
     private static BasicDBObject consulta;
@@ -45,7 +40,7 @@ public class Main {
 
     public static void main(String[] args) {
         // Conexión en mongodb Compass --> mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/test
-        CRUD =new CRUD("mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/?retryWrites=true&w=majority","practica04" , "recetas");
+        CRUD crud = new CRUD("mongodb+srv://pnav:17072003@cluster0.8awmtte.mongodb.net/?retryWrites=true&w=majority", "practica04", "recetas");
 
         Colores.imprimirVerde("Conectado a la base de datos");
         int respuesta;
@@ -54,38 +49,39 @@ public class Main {
 
             switch (respuesta) {
                 case 1:
-                    if (CRUD.insertarReceta()) {
+                    if (crud.insertarReceta()) {
                         Colores.imprimirVerde("La receta se ha insertado con éxito");
                     } else {
                         Colores.imprimirRojo("La receta no se ha insertado");
                     }
                     break;
                 case 2:
-                    mostrarRecetas();
-                    CRUD.borrarReceta();
+                    crud.mostrarSoloNombre(new BasicDBObject());
+                    crud.borrarReceta();
                     break;
                 case 3:
-                    mostrarRecetas();
-                    CRUD.actualizarElaboracion();
+                    crud.mostrarSoloNombreYTiempo(new BasicDBObject());
+                    crud.actualizarElaboracion();
                     break;
                 case 4:
-                    CRUD.mostrarSoloIngredientes(new BasicDBObject("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que desea consultar")));
+                    crud.mostrarSoloNombreYTiempo(new BasicDBObject());
+                    crud.mostrarSoloIngredientes(new BasicDBObject("nombre", Utilidades.solicitarCadenaNoVacia("Introduce el nombre de la receta que desea consultar")));
                     break;
                 case 5:
 
-                    CRUD.mostrarSoloNombre(consultaPorIngredienteYCalorias());
+                    crud.mostrarSoloNombre(consultaPorIngredienteYCalorias());
                     break;
                 case 6:
 
-                    CRUD.mostrarSoloNombreYTiempo(consultarPorTiempoYTipoDePlato());
+                    crud.mostrarSoloNombreYTiempo(consultarPorTiempoYTipoDePlato());
                     break;
                 case 7:
-                    CRUD.mostrarSoloNombreYPasos(consultarPorElaboracionYTipoDePlato());
+                    crud.mostrarSoloNombreYPasos(consultarPorElaboracionYTipoDePlato());
                     break;
                 case 8:
                     consulta = consultarPorDificultadYNumPasos();
 
-                    CRUD.mostrarDatos(consulta);
+                    crud.mostrarDatos(consulta);
                     break;
             }
         } while (respuesta != MENU_OPCIONES.length);
@@ -165,15 +161,4 @@ public class Main {
         consulta.put("$and", dbObjects);
         return consulta;
     }
-
-    /**
-     * Método para mostrar todos los nombres de las recetas de la colección
-     */
-    private static void mostrarRecetas() {
-        System.out.println("Estas son las recetas que existen");
-        CRUD.mostrarSoloNombre(new BasicDBObject());
-        System.out.println("////////////////////////////////////////////////////");
-    }
-
-
 }
